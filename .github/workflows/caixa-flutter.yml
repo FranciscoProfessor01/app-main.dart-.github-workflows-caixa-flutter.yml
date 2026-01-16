@@ -1,0 +1,49 @@
+name: Criar APK Flutter (Caixa)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create Flutter project
+        run: |
+          flutter create caixa_flutter
+          ls -la
+
+      - name: Copy app source
+        run: |
+          cp app/main.dart caixa_flutter/lib/main.dart
+
+      - name: Add dependencies
+        run: |
+          cd caixa_flutter
+          flutter pub add intl path_provider csv
+
+      - name: Build release APK
+        run: |
+          cd caixa_flutter
+          flutter pub get
+          flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: caixa-apk
+          path: caixa_flutter/build/app/outputs/flutter-apk/app-release.apk
